@@ -2,34 +2,71 @@ import Head from 'next/head'
 import { useRef, useEffect, useState } from 'react';
 
 export default function Page() {
-  const [minutes, setMinutes] = useState(24)
+  const [running, setRunning] = useState(false)
+  const [remaining, setRemaining] = useState(minToMsec(25))
+  const [min, sec] = msecToMinSec(remaining)
 
   return (
     <div className="h-screen flex pb-32">
       <Head>
-        <title>Timer</title>
+        <title>{min}:{sec.toString().padStart(2, '0')}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="m-auto">
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            console.log('submit')
-          }}
-        >
-          <MinutesInput
-            value={minutes}
-            onChange={setMinutes}
+        {running ?
+          <Display remaining={remaining} />
+          :
+          <Form
+            remaining={remaining}
+            setRemaining={setRemaining}
+            onComplete={(remaining) => {
+              const until = (new Date()).getTime() + remaining
+              setRunning(true)
+              startCountDown(until, setRemaining)
+            }}
           />
-        </form>
+        }
       </div>
     </div>
   )
 }
 
+// Components
 
-const MinutesInput = ({ value, onChange }) => {
+const Display = ({ remaining }) => {
+  const [min, sec] = msecToMinSec(remaining)
+  return (
+    <div className="font-mono text-8xl w-72 text-center outline-none">
+      {min}:{sec.toString().padStart(2, '0')}
+    </div>
+  )
+}
 
+const Form = ({ setRemaining, remaining, onComplete }) => {
+  const minutes = msecToMin(remaining)
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault()
+        onComplete(remaining)
+      }}
+    >
+      <AutoFocusInput
+        type="number"
+        min="0"
+        max="59"
+        value={minutes}
+        className="font-mono text-8xl w-72 text-center outline-none"
+        onChange={(event) => {
+          setRemaining(minToMsec(event.target.value))
+        }}
+      />
+    </form>
+  )
+}
+
+const AutoFocusInput = ({ ref_, ...props }) => {
   const ref = useRef()
   useEffect(() => {
     ref.current.focus()
@@ -37,15 +74,41 @@ const MinutesInput = ({ value, onChange }) => {
 
   return (
     <input
-      type="number"
-      min="0"
-      max="59"
-      value={value}
-      className="font-mono text-8xl w-72 text-center outline-none"
-      onChange={(event) => {
-        onChange(event.target.value)
-      }}
       ref={ref}
-    />
-  )
+      onFocus={(event) => {
+        const position = event.target.value.length
+        event.target.selectionEnd = position
+        event.target.selectionStart = position
+      }}
+      {...props} />)
+}
+
+// Timer
+
+const startCountDown = (until, setRemaining) => {
+  const timerId = setInterval(() => {
+    const now = (new Date()).getTime()
+    const remaining = Math.max(until - now, 0)
+    setRemaining(remaining)
+    if (remaining == 0) {
+      clearInterval(timerId)
+    }
+  }, 500)
+}
+
+// utilities
+
+const msecToMinSec = (msec) => {
+  const min = Math.floor(msec / 1000 / 60)
+  const sec = (Math.floor(msec / 1000) % 60)
+  return [min, sec]
+}
+
+const minToMsec = (min) => {
+  return min * 60 * 1000
+
+}
+
+const msecToMin = (msec) => {
+  return msec / (60 * 1000)
 }

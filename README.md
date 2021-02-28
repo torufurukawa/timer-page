@@ -13,13 +13,10 @@
 [x] prevent submit event
 [x] timer input only accepts numbers
 [x] nextjs
-[ ] vercel
-  [ ] create repository
-  [ ] push
-  [ ] setup vercel
-  [ ] branch dev
-[ ] showing rest
-[ ] start
+[x] vercel
+[ ] count down
+[ ] start UI
+[ ] counting UI
 [ ] stop
 [ ] pause
 [ ] notify
