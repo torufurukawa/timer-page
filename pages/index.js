@@ -1,114 +1,68 @@
 import Head from 'next/head'
-import { useRef, useEffect, useState } from 'react';
+import { useState } from 'react'
 
 export default function Page() {
-  const [running, setRunning] = useState(false)
-  const [remaining, setRemaining] = useState(minToMsec(25))
-  const [min, sec] = msecToMinSec(remaining)
+  const [seconds, setSeconds] = useState(0)
 
   return (
-    <div className="h-screen flex pb-32">
+    <>
       <Head>
-        <title>{min}:{sec.toString().padStart(2, '0')}</title>
-        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <div className="m-auto">
-        {running ?
-          <Display remaining={remaining} />
-          :
-          <Form
-            remaining={remaining}
-            setRemaining={setRemaining}
-            onComplete={(remaining) => {
-              const until = (new Date()).getTime() + remaining
-              setRunning(true)
-              startCountDown(until, setRemaining)
-            }}
-          />
-        }
+      <div className="container">
+        <Timer seconds={seconds} setSeconds={setSeconds} />
       </div>
-    </div>
+    </>
   )
 }
 
-// Components
-
-const Display = ({ remaining }) => {
-  const [min, sec] = msecToMinSec(remaining)
-  return (
-    <div className="font-mono text-8xl w-72 text-center outline-none">
-      {min}:{sec.toString().padStart(2, '0')}
-    </div>
-  )
+function Timer({ seconds, setSeconds }) {
+  const [minutes, setMinutes] = useState(Math.floor(seconds / 60))
+  return <TimerDisplay minutes={minutes} onMinutesChange={(minutes) => {
+    setMinutes(minutes)
+    setSeconds(minutes * 60)
+  }} />
 }
 
-const Form = ({ setRemaining, remaining, onComplete }) => {
-  const minutes = msecToMin(remaining)
-
-  return (
-    <form
-      onSubmit={(event) => {
-        event.preventDefault()
-        onComplete(remaining)
-      }}
-    >
-      <AutoFocusInput
-        type="number"
-        min="0"
-        max="59"
-        value={minutes}
-        className="font-mono text-8xl w-72 text-center outline-none"
-        onChange={(event) => {
-          setRemaining(minToMsec(event.target.value))
-        }}
-      />
-    </form>
-  )
-}
-
-const AutoFocusInput = ({ ref_, ...props }) => {
-  const ref = useRef()
-  useEffect(() => {
-    ref.current.focus()
-  })
+function TimerDisplay({ minutes, onMinutesChange }) {
+  const min = minutes.toString()
+  const [readOnly, setReadOnly] = useState(true)
+  const [currentMin, setCurrentMin] = useState(min)
 
   return (
     <input
-      ref={ref}
-      onFocus={(event) => {
-        const position = event.target.value.length
-        event.target.selectionEnd = position
-        event.target.selectionStart = position
-      }}
-      {...props} />)
-}
-
-// Timer
-
-const startCountDown = (until, setRemaining) => {
-  const timerId = setInterval(() => {
-    const now = (new Date()).getTime()
-    const remaining = Math.max(until - now, 0)
-    setRemaining(remaining)
-    if (remaining == 0) {
-      clearInterval(timerId)
-    }
-  }, 500)
-}
-
-// utilities
-
-const msecToMinSec = (msec) => {
-  const min = Math.floor(msec / 1000 / 60)
-  const sec = (Math.floor(msec / 1000) % 60)
-  return [min, sec]
-}
-
-const minToMsec = (min) => {
-  return min * 60 * 1000
-
-}
-
-const msecToMin = (msec) => {
-  return msec / (60 * 1000)
+      className="form-control form-control-lg mt-4 text-center"
+      type="text"
+      placeholder="00:00"
+      value={`${currentMin}:00`}
+      readOnly={readOnly}
+      onClick={() => { setReadOnly(false) }}
+      onKeyUp={(event) => {
+        if (readOnly === true) {
+          return
+        }
+        if (event.code === 'Escape') {
+          setCurrentMin(min)
+          setReadOnly(true)
+        } else if (event.code.startsWith('Digit')) {
+          const number = event.key
+          if (currentMin === '0') {
+            if (['1', '2', '3', '4', '5'].includes(number)) {
+              setCurrentMin(number)
+            }
+          } else if (currentMin.length === 1) {
+            setCurrentMin(currentMin.concat(number))
+          }
+        } else if (event.code === 'Enter') {
+          setReadOnly(true)
+          onMinutesChange(parseInt(currentMin))
+        } else if (['Delete', 'Backspace'].includes(event.code)) {
+          if (currentMin.length === 2) {
+            setCurrentMin(currentMin[0])
+          } else {
+            setCurrentMin(0)
+          }
+        }
+      }} />
+  )
 }
