@@ -18,10 +18,16 @@ export default function Page() {
 
 function Timer({ seconds, setSeconds }) {
   const [minutes, setMinutes] = useState(Math.floor(seconds / 60))
-  return <TimerDisplay minutes={minutes} onMinutesChange={(minutes) => {
-    setMinutes(minutes)
-    setSeconds(minutes * 60)
-  }} />
+  return <TimerDisplay
+    minutes={minutes}
+    onMinutesChange={(minutes, start = false) => {
+      setMinutes(minutes)
+      setSeconds(minutes * 60)
+      console.log('start:', start)
+      if (start) {
+
+      }
+    }} />
 }
 
 function TimerDisplay({ minutes, onMinutesChange }) {
@@ -55,7 +61,7 @@ function TimerDisplay({ minutes, onMinutesChange }) {
           }
         } else if (event.code === 'Enter') {
           setReadOnly(true)
-          onMinutesChange(parseInt(currentMin))
+          onMinutesChange(parseInt(currentMin), true)
         } else if (['Delete', 'Backspace'].includes(event.code)) {
           if (currentMin.length === 2) {
             setCurrentMin(currentMin[0])
