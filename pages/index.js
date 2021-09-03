@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export default function Page() {
   const [seconds, setSeconds] = useState(0)
@@ -18,14 +18,34 @@ export default function Page() {
 
 function Timer({ seconds, setSeconds }) {
   const [minutes, setMinutes] = useState(Math.floor(seconds / 60))
+  const [until, setUntil] = useState(Date.now() / 1000)
+  const intervalRef = useRef(null)
+  console.log('in', seconds)
+
+  function startTicking(until) {
+    if (intervalRef.current !== null) {
+      return
+    }
+    intervalRef.current = setInterval(() => {
+      const sec = until - (Date.now() / 1000)
+      setSeconds(sec)
+      setMinutes(sec / 60)
+
+    }, 1000)
+  }
+
   return <TimerDisplay
     minutes={minutes}
     onMinutesChange={(minutes, start = false) => {
       setMinutes(minutes)
-      setSeconds(minutes * 60)
+      const sec = minutes * 60
+      setSeconds(sec)
+      console.log(sec)
       console.log('start:', start)
       if (start) {
-
+        const u = Date.now() / 1000 + sec
+        setUntil(u)
+        startTicking(u)
       }
     }} />
 }
