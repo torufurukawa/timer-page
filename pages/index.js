@@ -17,9 +17,8 @@ export default function Page() {
 }
 
 function Timer({ seconds, setSeconds }) {
-  const [minutes, setMinutes] = useState(Math.floor(seconds / 60))
-  const [until, setUntil] = useState(Date.now() / 1000)
   const intervalRef = useRef(null)
+  const [currentSeconds, setCurrentSeconds] = useState(seconds)
   console.log('in', seconds)
 
   function startTicking(until) {
@@ -29,38 +28,42 @@ function Timer({ seconds, setSeconds }) {
     intervalRef.current = setInterval(() => {
       const sec = until - (Date.now() / 1000)
       setSeconds(sec)
-      setMinutes(sec / 60)
-
+      setCurrentSeconds(sec)
     }, 1000)
   }
 
   return <TimerDisplay
-    minutes={minutes}
-    onMinutesChange={(minutes, start = false) => {
-      setMinutes(minutes)
-      const sec = minutes * 60
-      setSeconds(sec)
-      console.log(sec)
-      console.log('start:', start)
-      if (start) {
-        const u = Date.now() / 1000 + sec
-        setUntil(u)
-        startTicking(u)
-      }
+    seconds={currentSeconds}
+    onChange={(currentSeconds) => {
+      setCurrentSeconds(currentSeconds)
+    }}
+    onCancel={() => {
+      setCurrentSeconds(seconds)
+      setSeconds(seconds)
+    }}
+    onSubmit={() => {
+      setSeconds(currentSeconds)
+      const u = Date.now() / 1000 + currentSeconds
+      startTicking(u)
     }} />
 }
 
-function TimerDisplay({ minutes, onMinutesChange }) {
-  const min = minutes.toString()
+function TimerDisplay({ seconds, onChange, onCancel, onSubmit }) {
+  const min = Math.floor(seconds / 60).toString()
+  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  console.log('display:', seconds, min, sec)
   const [readOnly, setReadOnly] = useState(true)
-  const [currentMin, setCurrentMin] = useState(min)
+
+  function calcSeconds(min, sec) {
+    return parseInt(min) * 60 + parseInt(sec)
+  }
 
   return (
     <input
       className="form-control form-control-lg mt-4 text-center"
       type="text"
       placeholder="00:00"
-      value={`${currentMin}:00`}
+      value={`${min}:${sec}`}
       readOnly={readOnly}
       onClick={() => { setReadOnly(false) }}
       onKeyUp={(event) => {
@@ -68,26 +71,29 @@ function TimerDisplay({ minutes, onMinutesChange }) {
           return
         }
         if (event.code === 'Escape') {
-          setCurrentMin(min)
           setReadOnly(true)
+          onCancel()
         } else if (event.code.startsWith('Digit')) {
           const number = event.key
-          if (currentMin === '0') {
+          let newMin
+          if (min === '0') {
             if (['1', '2', '3', '4', '5'].includes(number)) {
-              setCurrentMin(number)
+              newMin = number
             }
-          } else if (currentMin.length === 1) {
-            setCurrentMin(currentMin.concat(number))
+          } else if (min.length === 1) {
+            newMin = min.concat(number)
           }
+          onChange(calcSeconds(newMin, sec))
         } else if (event.code === 'Enter') {
           setReadOnly(true)
-          onMinutesChange(parseInt(currentMin), true)
+          onSubmit()
         } else if (['Delete', 'Backspace'].includes(event.code)) {
-          if (currentMin.length === 2) {
-            setCurrentMin(currentMin[0])
+          if (min.length === 2) {
+            setMin(min[0])
           } else {
-            setCurrentMin(0)
+            setMin(0)
           }
+          onChange(calcSeconds(newMin, sec))
         }
       }} />
   )
