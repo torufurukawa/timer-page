@@ -20,6 +20,7 @@ function Timer({ seconds, setSeconds }) {
   const intervalRef = useRef(null)
   const [currentSeconds, setCurrentSeconds] = useState(seconds)
   console.log('in', seconds)
+  const [isEditing, setIsEditing] = useState(false)
 
   function startTicking(until) {
     if (intervalRef.current !== null) {
@@ -34,6 +35,13 @@ function Timer({ seconds, setSeconds }) {
 
   return <TimerDisplay
     seconds={currentSeconds}
+    isEditing={isEditing}
+    onClick={() => { setIsEditing(true) }}
+    // TODO implement this function
+    onChange2={(seconds, isEditing, readyToStart) => {
+      console.log(seconds, isEditing, readyToStart)
+      setIsEditing(isEditing)
+    }}
     onChange={(currentSeconds) => {
       setCurrentSeconds(currentSeconds)
     }}
@@ -48,7 +56,9 @@ function Timer({ seconds, setSeconds }) {
     }} />
 }
 
-function TimerDisplay({ seconds, onChange, onCancel, onSubmit }) {
+// TODO seconds と onChange だけ渡す
+function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChange2 }) {
+  const originalSeconds = seconds
   const min = Math.floor(seconds / 60).toString()
   const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
   console.log('display:', seconds, min, sec)
@@ -58,21 +68,28 @@ function TimerDisplay({ seconds, onChange, onCancel, onSubmit }) {
     return parseInt(min) * 60 + parseInt(sec)
   }
 
+  console.log(!isEditing)
+
   return (
     <input
       className="form-control form-control-lg mt-4 text-center"
       type="text"
       placeholder="00:00"
       value={`${min}:${sec}`}
-      readOnly={readOnly}
-      onClick={() => { setReadOnly(false) }}
+      readOnly={!isEditing}
+      onClick={() => {
+        if (!isEditing) {
+          onChange2(seconds, true, false)
+        }
+      }}
+      // TODO 以降のイベントハンドルを onChange2 を使って実装
       onKeyUp={(event) => {
-        if (readOnly === true) {
+        if (isEditing === false) {
           return
         }
         if (event.code === 'Escape') {
-          setReadOnly(true)
-          onCancel()
+          console.log('escape')
+          onChange2(originalSeconds, false, false)
         } else if (event.code.startsWith('Digit')) {
           const number = event.key
           let newMin
