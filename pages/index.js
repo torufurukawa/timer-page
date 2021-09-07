@@ -43,7 +43,7 @@ function Timer({ seconds, setSeconds }) {
       setIsEditing(isEditing)
       setSeconds(seconds)
       if (readyToStart === true) {
-        // TODO stop a working timer
+        // TODO stop a working timer, in onClick()?
         const until = Date.now() / 1000 + seconds
         startTicking(until)
       }
@@ -51,32 +51,21 @@ function Timer({ seconds, setSeconds }) {
     onChange={(currentSeconds) => {
       setCurrentSeconds(currentSeconds)
     }}
-    onCancel={() => {
-      setCurrentSeconds(seconds)
-      setSeconds(seconds)
-    }}
-    onSubmit={() => {
-      setSeconds(currentSeconds)
-      const u = Date.now() / 1000 + currentSeconds
-      startTicking(u)
-    }} />
+  />
 }
 
 // TODO seconds と onChange だけ渡す
-function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChange2 }) {
+function TimerDisplay({ seconds, onChange, isEditing, onChange2 }) {
   const originalSeconds = seconds
   const [localSeconds, setLocalSeconds] = useState(seconds)
   const displayingSeconds = isEditing ? localSeconds : originalSeconds
   const min = Math.floor(displayingSeconds / 60).toString()
   const sec = (Math.floor(displayingSeconds) % 60).toString().padStart(2, '0')
   console.log('display:', displayingSeconds, min, sec)
-  const [readOnly, setReadOnly] = useState(true)
 
   function calcSeconds(min, sec) {
     return parseInt(min) * 60 + parseInt(sec)
   }
-
-  console.log(!isEditing)
 
   return (
     <input
@@ -108,16 +97,15 @@ function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChan
           }
           setLocalSeconds(calcSeconds(newMin, sec))
         } else if (event.code === 'Enter') {
-          // TODO
           onChange2(localSeconds, false, true)
         } else if (['Delete', 'Backspace'].includes(event.code)) {
-          // TODO
+          let newMin = min
           if (min.length === 2) {
-            setMin(min[0])
+            newMin = min[0]
           } else {
-            setMin(0)
+            newMin = 0
           }
-          onChange(calcSeconds(newMin, sec))
+          setLocalSeconds(calcSeconds(newMin, sec))
         }
       }} />
   )
