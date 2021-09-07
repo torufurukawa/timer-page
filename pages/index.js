@@ -59,8 +59,9 @@ function Timer({ seconds, setSeconds }) {
 // TODO seconds と onChange だけ渡す
 function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChange2 }) {
   const originalSeconds = seconds
-  const min = Math.floor(seconds / 60).toString()
-  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  const [localSeconds, setLocalSeconds] = useState(seconds)
+  const min = Math.floor(localSeconds / 60).toString()
+  const sec = (Math.floor(localSeconds) % 60).toString().padStart(2, '0')
   console.log('display:', seconds, min, sec)
   const [readOnly, setReadOnly] = useState(true)
 
@@ -79,20 +80,18 @@ function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChan
       readOnly={!isEditing}
       onClick={() => {
         if (!isEditing) {
-          onChange2(seconds, true, false)
+          onChange2(localSeconds, true, false)
         }
       }}
-      // TODO 以降のイベントハンドルを onChange2 を使って実装
       onKeyUp={(event) => {
         if (isEditing === false) {
           return
         }
         if (event.code === 'Escape') {
-          console.log('escape')
           onChange2(originalSeconds, false, false)
         } else if (event.code.startsWith('Digit')) {
           const number = event.key
-          let newMin
+          let newMin = min
           if (min === '0') {
             if (['1', '2', '3', '4', '5'].includes(number)) {
               newMin = number
@@ -100,11 +99,13 @@ function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChan
           } else if (min.length === 1) {
             newMin = min.concat(number)
           }
-          onChange(calcSeconds(newMin, sec))
+          setLocalSeconds(calcSeconds(newMin, sec))
         } else if (event.code === 'Enter') {
+          // TODO
           setReadOnly(true)
           onSubmit()
         } else if (['Delete', 'Backspace'].includes(event.code)) {
+          // TODO
           if (min.length === 2) {
             setMin(min[0])
           } else {
