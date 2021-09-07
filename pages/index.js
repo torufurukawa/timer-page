@@ -41,6 +41,12 @@ function Timer({ seconds, setSeconds }) {
     onChange2={(seconds, isEditing, readyToStart) => {
       console.log(seconds, isEditing, readyToStart)
       setIsEditing(isEditing)
+      setSeconds(seconds)
+      if (readyToStart === true) {
+        // TODO stop a working timer
+        const until = Date.now() / 1000 + seconds
+        startTicking(until)
+      }
     }}
     onChange={(currentSeconds) => {
       setCurrentSeconds(currentSeconds)
@@ -60,9 +66,10 @@ function Timer({ seconds, setSeconds }) {
 function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChange2 }) {
   const originalSeconds = seconds
   const [localSeconds, setLocalSeconds] = useState(seconds)
-  const min = Math.floor(localSeconds / 60).toString()
-  const sec = (Math.floor(localSeconds) % 60).toString().padStart(2, '0')
-  console.log('display:', seconds, min, sec)
+  const displayingSeconds = isEditing ? localSeconds : originalSeconds
+  const min = Math.floor(displayingSeconds / 60).toString()
+  const sec = (Math.floor(displayingSeconds) % 60).toString().padStart(2, '0')
+  console.log('display:', displayingSeconds, min, sec)
   const [readOnly, setReadOnly] = useState(true)
 
   function calcSeconds(min, sec) {
@@ -102,8 +109,7 @@ function TimerDisplay({ seconds, onChange, onCancel, onSubmit, isEditing, onChan
           setLocalSeconds(calcSeconds(newMin, sec))
         } else if (event.code === 'Enter') {
           // TODO
-          setReadOnly(true)
-          onSubmit()
+          onChange2(localSeconds, false, true)
         } else if (['Delete', 'Backspace'].includes(event.code)) {
           // TODO
           if (min.length === 2) {
