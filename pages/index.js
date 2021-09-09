@@ -37,25 +37,19 @@ function Timer({ seconds, setSeconds }) {
     seconds={currentSeconds}
     isEditing={isEditing}
     onClick={() => { setIsEditing(true) }}
-    // TODO implement this function
-    onChange2={(seconds, isEditing, readyToStart) => {
+    onChange={(seconds, isEditing, readyToStart) => {
       console.log(seconds, isEditing, readyToStart)
       setIsEditing(isEditing)
       setSeconds(seconds)
       if (readyToStart === true) {
-        // TODO stop a working timer, in onClick()?
         const until = Date.now() / 1000 + seconds
         startTicking(until)
       }
     }}
-    onChange={(currentSeconds) => {
-      setCurrentSeconds(currentSeconds)
-    }}
   />
 }
 
-// TODO seconds と onChange だけ渡す
-function TimerDisplay({ seconds, onChange, isEditing, onChange2 }) {
+function TimerDisplay({ seconds, isEditing, onChange }) {
   const originalSeconds = seconds
   const [localSeconds, setLocalSeconds] = useState(seconds)
   const displayingSeconds = isEditing ? localSeconds : originalSeconds
@@ -76,7 +70,7 @@ function TimerDisplay({ seconds, onChange, isEditing, onChange2 }) {
       readOnly={!isEditing}
       onClick={() => {
         if (!isEditing) {
-          onChange2(localSeconds, true, false)
+          onChange(localSeconds, true, false)
         }
       }}
       onKeyUp={(event) => {
@@ -84,7 +78,7 @@ function TimerDisplay({ seconds, onChange, isEditing, onChange2 }) {
           return
         }
         if (event.code === 'Escape') {
-          onChange2(originalSeconds, false, false)
+          onChange(originalSeconds, false, false)
         } else if (event.code.startsWith('Digit')) {
           const number = event.key
           let newMin = min
@@ -97,7 +91,7 @@ function TimerDisplay({ seconds, onChange, isEditing, onChange2 }) {
           }
           setLocalSeconds(calcSeconds(newMin, sec))
         } else if (event.code === 'Enter') {
-          onChange2(localSeconds, false, true)
+          onChange(localSeconds, false, true)
         } else if (['Delete', 'Backspace'].includes(event.code)) {
           let newMin = min
           if (min.length === 2) {
