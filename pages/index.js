@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 export default function Page() {
   const [seconds, setSeconds] = useState(0)
@@ -17,49 +17,38 @@ export default function Page() {
 }
 
 function Timer({ seconds, setSeconds }) {
-  const intervalRef = useRef(null)
-  const [currentSeconds, setCurrentSeconds] = useState(seconds)
-  console.log('in', seconds)
   const [isEditing, setIsEditing] = useState(false)
 
-  function startTicking(until) {
-    if (intervalRef.current !== null) {
-      return
-    }
-    intervalRef.current = setInterval(() => {
-      const sec = until - (Date.now() / 1000)
-      setSeconds(sec)
-      setCurrentSeconds(sec)
-    }, 1000)
-  }
+  // const intervalRef = useRef(null)
+  // const [currentSeconds, setCurrentSeconds] = useState(seconds)
+  // console.log('in', seconds)
+  // function startTicking(until) {
+  //   if (intervalRef.current !== null) {
+  //     return
+  //   }
+  //   intervalRef.current = setInterval(() => {
+  //     const sec = until - (Date.now() / 1000)
+  //     setSeconds(sec)
+  //     setCurrentSeconds(sec)
+  //   }, 1000)
+  // }
 
-  return <TimerDisplay
-    seconds={currentSeconds}
-    isEditing={isEditing}
-    onClick={() => { setIsEditing(true) }}
-    onChange={(seconds, isEditing, readyToStart) => {
-      console.log(seconds, isEditing, readyToStart)
-      setIsEditing(isEditing)
-      setSeconds(seconds)
-      if (readyToStart === true) {
-        const until = Date.now() / 1000 + seconds
-        startTicking(until)
-      }
-    }}
-  />
+  return (
+    isEditing ?
+      <TimeController
+        seconds={seconds}
+        onChange={(seconds, start) => {
+          setSeconds(seconds)
+          setIsEditing(false)
+        }} />
+      :
+      <TimeIndicator seconds={seconds} onClick={() => { setIsEditing(true) }} />
+  )
 }
 
-function TimerDisplay({ seconds, isEditing, onChange }) {
-  const originalSeconds = seconds
-  const [localSeconds, setLocalSeconds] = useState(seconds)
-  const displayingSeconds = isEditing ? localSeconds : originalSeconds
-  const min = Math.floor(displayingSeconds / 60).toString()
-  const sec = (Math.floor(displayingSeconds) % 60).toString().padStart(2, '0')
-  console.log('display:', displayingSeconds, min, sec)
-
-  function calcSeconds(min, sec) {
-    return parseInt(min) * 60 + parseInt(sec)
-  }
+function TimeIndicator({ seconds, onClick }) {
+  const min = Math.floor(seconds / 60).toString()
+  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
 
   return (
     <input
@@ -67,40 +56,56 @@ function TimerDisplay({ seconds, isEditing, onChange }) {
       type="text"
       placeholder="00:00"
       value={`${min}:${sec}`}
-      readOnly={!isEditing}
-      onClick={() => {
-        if (!isEditing) {
-          onChange(localSeconds, true, false)
-        }
-      }}
-      onKeyUp={(event) => {
-        if (isEditing === false) {
-          return
-        }
-        if (event.code === 'Escape') {
-          onChange(originalSeconds, false, false)
-        } else if (event.code.startsWith('Digit')) {
-          const number = event.key
-          let newMin = min
-          if (min === '0') {
-            if (['1', '2', '3', '4', '5'].includes(number)) {
-              newMin = number
-            }
-          } else if (min.length === 1) {
-            newMin = min.concat(number)
-          }
-          setLocalSeconds(calcSeconds(newMin, sec))
-        } else if (event.code === 'Enter') {
-          onChange(localSeconds, false, true)
-        } else if (['Delete', 'Backspace'].includes(event.code)) {
-          let newMin = min
-          if (min.length === 2) {
-            newMin = min[0]
-          } else {
-            newMin = 0
-          }
-          setLocalSeconds(calcSeconds(newMin, sec))
-        }
-      }} />
+      readOnly
+      onClick={onClick}
+    />
   )
+}
+
+function TimeController({ seconds, onChange }) {
+  // placeholder
+  const min = Math.floor(seconds / 60).toString()
+  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  const placeholder = `${min}:${sec}`
+
+  // digits and representing text
+  const [digits, setDigits] = useState('')
+  let text = digits
+  if (digits.length >= 3) {
+    const index = digits.length - 2
+    text = digits.slice(0, index) + ':' + digits.slice(index)
+  }
+
+  const ref = useRef(null)
+
+  // instantiate component first
+  const input = <input
+    className="form-control form-control-lg mt-4 text-center"
+    type="text"
+    placeholder={placeholder}
+    readOnly={true}
+    value={text}
+    ref={ref}
+    onKeyUp={(event) => {
+      if (event.code.startsWith('Digit')) {
+        const newDigits = `${digits}${event.key}`
+        if (newDigits.length <= 4) {
+          setDigits(newDigits)
+        }
+      } else if (event.code === 'Escape') {
+        onChange(seconds, false)
+      } else if (event.code === 'Enter') {
+        const normalizedDigits = digits.padStart(4, '0')
+        const min = parseInt(normalizedDigits.substring(0, 2))
+        const sec = parseInt(normalizedDigits.substring(2, 4))
+        const newSeconds = min * 60 + sec
+        onChange(newSeconds, true)
+      } else if (['Delete', 'Backspace'].includes(event.code)) {
+        setDigits(digits.substring(0, digits.length - 1))
+      }
+    }} />
+
+  // focus, then return
+  useEffect(() => { ref.current.focus() }, [])
+  return input
 }
