@@ -2,36 +2,44 @@ import Head from 'next/head'
 import { useState, useRef, useEffect } from 'react'
 
 export default function Page() {
-  const [seconds, setSeconds] = useState(0)
-
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="container">
-        <Timer seconds={seconds} setSeconds={setSeconds} />
+        <Timer />
       </div>
     </>
   )
 }
 
-function Timer({ seconds, setSeconds }) {
+function Timer() {
+  const [seconds, setSeconds] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
+  const intervalRef = useRef(null)
 
-  // const intervalRef = useRef(null)
-  // const [currentSeconds, setCurrentSeconds] = useState(seconds)
-  // console.log('in', seconds)
-  // function startTicking(until) {
-  //   if (intervalRef.current !== null) {
-  //     return
-  //   }
-  //   intervalRef.current = setInterval(() => {
-  //     const sec = until - (Date.now() / 1000)
-  //     setSeconds(sec)
-  //     setCurrentSeconds(sec)
-  //   }, 1000)
-  // }
+  function startTicking(until) {
+    if (intervalRef.current !== null) {
+      return
+    }
+    intervalRef.current = setInterval(() => {
+      let sec = (until - Date.now()) / 1000
+      if (sec <= 0) {
+        stopTicking()
+        sec = 0
+      }
+      setSeconds(sec)
+    }, 500)
+  }
+
+  function stopTicking() {
+    if (intervalRef.current === null) {
+      return;
+    }
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+  }
 
   return (
     isEditing ?
@@ -40,9 +48,19 @@ function Timer({ seconds, setSeconds }) {
         onChange={(seconds, start) => {
           setSeconds(seconds)
           setIsEditing(false)
+          if (start === true) {
+            const until = Date.now() + seconds * 1000
+            startTicking(until)
+          }
         }} />
       :
-      <TimeIndicator seconds={seconds} onClick={() => { setIsEditing(true) }} />
+      <TimeIndicator
+        seconds={seconds}
+        onClick={() => {
+          setIsEditing(true)
+          stopTicking()
+        }}
+      />
   )
 }
 
