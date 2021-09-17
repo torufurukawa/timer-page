@@ -18,6 +18,10 @@ function Timer() {
   const [seconds, setSeconds] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
   const intervalRef = useRef(null)
+  let audio
+  if (typeof (Audio) != 'undefined') {
+    audio = new Audio('chime.mp3')
+  }
 
   function startTicking(until) {
     if (intervalRef.current !== null) {
@@ -27,6 +31,7 @@ function Timer() {
       let sec = (until - Date.now()) / 1000
       if (sec <= 0) {
         stopTicking()
+        audio.play()
         sec = 0
       }
       setSeconds(sec)
