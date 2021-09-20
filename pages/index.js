@@ -1,21 +1,33 @@
 import Head from 'next/head'
 import { useState, useRef, useEffect } from 'react'
 
+const icons = {
+  'none': 'icon-gray.png',
+  'tick': 'icon-green.png',
+  'complete': 'icon-red.png'
+}
+
 export default function Page() {
+  const [seconds, setSeconds] = useState(0)
+  const [min, sec] = seconds2minsec(seconds)
+  const [denote, setDenote] = useState('none')
+  const favicon = icons[denote]
+
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{`${min}:${sec}`}</title>
+        <link rel="icon" href={favicon} />
       </Head>
       <div className="container">
-        <Timer />
+        <Timer seconds={seconds} setSeconds={setSeconds} setDenote={setDenote} />
       </div>
     </>
   )
 }
 
-function Timer() {
-  const [seconds, setSeconds] = useState(0)
+function Timer({ seconds, setSeconds, setDenote }) {
   const [isEditing, setIsEditing] = useState(false)
   const intervalRef = useRef(null)
   let audio
@@ -23,7 +35,22 @@ function Timer() {
     audio = new Audio('chime.mp3')
   }
 
+  // ticker utililties
   function startTicking(until) {
+    startInterval(until)
+    setDenote('tick')
+  }
+  function stopTicking() {
+    stopInterval()
+    setDenote('complete')
+  }
+  function pauseTicking() {
+    stopInterval()
+    setDenote('none')
+  }
+
+  // interval utilities
+  function startInterval(until) {
     if (intervalRef.current !== null) {
       return
     }
@@ -37,8 +64,7 @@ function Timer() {
       setSeconds(sec)
     }, 500)
   }
-
-  function stopTicking() {
+  function stopInterval() {
     if (intervalRef.current === null) {
       return;
     }
@@ -46,6 +72,7 @@ function Timer() {
     intervalRef.current = null;
   }
 
+  // component
   return (
     isEditing ?
       <TimeController
@@ -63,15 +90,14 @@ function Timer() {
         seconds={seconds}
         onClick={() => {
           setIsEditing(true)
-          stopTicking()
+          pauseTicking('none')
         }}
       />
   )
 }
 
 function TimeIndicator({ seconds, onClick }) {
-  const min = Math.floor(seconds / 60).toString()
-  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  const [min, sec] = seconds2minsec(seconds)
 
   return (
     <input
@@ -87,8 +113,7 @@ function TimeIndicator({ seconds, onClick }) {
 
 function TimeController({ seconds, onChange }) {
   // placeholder
-  const min = Math.floor(seconds / 60).toString()
-  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  const [min, sec] = seconds2minsec(seconds)
   const placeholder = `${min}:${sec}`
 
   // digits and representing text
@@ -132,3 +157,12 @@ function TimeController({ seconds, onChange }) {
   useEffect(() => { ref.current.focus() }, [])
   return input
 }
+
+// Utilities
+
+function seconds2minsec(seconds) {
+  const min = Math.floor(seconds / 60).toString()
+  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  return [min, sec]
+}
+
