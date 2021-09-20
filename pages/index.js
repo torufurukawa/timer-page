@@ -21,13 +21,13 @@ export default function Page() {
         <link rel="icon" href={favicon} />
       </Head>
       <div className="container">
-        <Timer seconds={seconds} setSeconds={setSeconds} />
+        <Timer seconds={seconds} setSeconds={setSeconds} setDenote={setDenote} />
       </div>
     </>
   )
 }
 
-function Timer({ seconds, setSeconds }) {
+function Timer({ seconds, setSeconds, setDenote }) {
   const [isEditing, setIsEditing] = useState(false)
   const intervalRef = useRef(null)
   let audio
@@ -48,6 +48,7 @@ function Timer({ seconds, setSeconds }) {
       }
       setSeconds(sec)
     }, 500)
+    setDenote('tick')
   }
 
   function stopTicking() {
