@@ -40,18 +40,16 @@ function Timer({ seconds, setSeconds, setDenote }) {
     startInterval(until)
     setDenote('tick')
   }
-
-  function stopTicking(denote) {
-    if (intervalRef.current === null) {
-      return;
-    }
-    clearInterval(intervalRef.current);
-    intervalRef.current = null;
-    setDenote(denote)
+  function stopTicking() {
+    stopInterval()
+    setDenote('complete')
+  }
+  function pauseTicking() {
+    stopInterval()
+    setDenote('none')
   }
 
   // interval utilities
-
   function startInterval(until) {
     if (intervalRef.current !== null) {
       return
@@ -59,12 +57,19 @@ function Timer({ seconds, setSeconds, setDenote }) {
     intervalRef.current = setInterval(() => {
       let sec = (until - Date.now()) / 1000
       if (sec <= 0) {
-        stopTicking('complete')
+        stopTicking()
         audio.play()
         sec = 0
       }
       setSeconds(sec)
     }, 500)
+  }
+  function stopInterval() {
+    if (intervalRef.current === null) {
+      return;
+    }
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
   }
 
   // component
@@ -85,7 +90,7 @@ function Timer({ seconds, setSeconds, setDenote }) {
         seconds={seconds}
         onClick={() => {
           setIsEditing(true)
-          stopTicking('none')
+          pauseTicking('none')
         }}
       />
   )
