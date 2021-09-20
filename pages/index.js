@@ -4,12 +4,15 @@ import { useState, useRef, useEffect } from 'react'
 export default function Page() {
   const [seconds, setSeconds] = useState(0)
   const [min, sec] = seconds2minsec(seconds)
+  const [denote, setDenote] = useState('none')
+  const favicon = 'icon-gray.png'
 
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{`${min}:${sec}`}</title>
+        <link rel="icon" href={favicon} />
       </Head>
       <div className="container">
         <Timer seconds={seconds} setSeconds={setSeconds} />
