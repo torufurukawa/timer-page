@@ -35,19 +35,9 @@ function Timer({ seconds, setSeconds, setDenote }) {
     audio = new Audio('chime.mp3')
   }
 
+  // ticker utililties
   function startTicking(until) {
-    if (intervalRef.current !== null) {
-      return
-    }
-    intervalRef.current = setInterval(() => {
-      let sec = (until - Date.now()) / 1000
-      if (sec <= 0) {
-        stopTicking('complete')
-        audio.play()
-        sec = 0
-      }
-      setSeconds(sec)
-    }, 500)
+    startInterval(until)
     setDenote('tick')
   }
 
@@ -60,6 +50,24 @@ function Timer({ seconds, setSeconds, setDenote }) {
     setDenote(denote)
   }
 
+  // interval utilities
+
+  function startInterval(until) {
+    if (intervalRef.current !== null) {
+      return
+    }
+    intervalRef.current = setInterval(() => {
+      let sec = (until - Date.now()) / 1000
+      if (sec <= 0) {
+        stopTicking('complete')
+        audio.play()
+        sec = 0
+      }
+      setSeconds(sec)
+    }, 500)
+  }
+
+  // component
   return (
     isEditing ?
       <TimeController
@@ -145,8 +153,11 @@ function TimeController({ seconds, onChange }) {
   return input
 }
 
+// Utilities
+
 function seconds2minsec(seconds) {
   const min = Math.floor(seconds / 60).toString()
   const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
   return [min, sec]
 }
+
