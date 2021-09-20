@@ -117,7 +117,11 @@ function TimeController({ seconds, onChange }) {
   const placeholder = `${min}:${sec}`
 
   // digits and representing text
-  const [digits, setDigits] = useState('')
+  let initialDigits = parseInt(`${min}${sec}`).toString()
+  if (initialDigits === '0') {
+    initialDigits = ''
+  }
+  const [digits, setDigits] = useState(initialDigits)
   let text = digits
   if (digits.length >= 3) {
     const index = digits.length - 2
