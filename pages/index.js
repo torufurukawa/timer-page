@@ -1,11 +1,17 @@
 import Head from 'next/head'
 import { useState, useRef, useEffect } from 'react'
 
+const icons = {
+  'none': 'icon-gray.png',
+  'tick': 'icon-green.png',
+  'complete': 'icon-red.png'
+}
+
 export default function Page() {
   const [seconds, setSeconds] = useState(0)
   const [min, sec] = seconds2minsec(seconds)
   const [denote, setDenote] = useState('none')
-  const favicon = 'icon-gray.png'
+  const favicon = icons[denote]
 
   return (
     <>
