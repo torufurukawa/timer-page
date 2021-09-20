@@ -42,7 +42,7 @@ function Timer({ seconds, setSeconds, setDenote }) {
     intervalRef.current = setInterval(() => {
       let sec = (until - Date.now()) / 1000
       if (sec <= 0) {
-        stopTicking()
+        stopTicking('complete')
         audio.play()
         sec = 0
       }
@@ -51,12 +51,13 @@ function Timer({ seconds, setSeconds, setDenote }) {
     setDenote('tick')
   }
 
-  function stopTicking() {
+  function stopTicking(denote) {
     if (intervalRef.current === null) {
       return;
     }
     clearInterval(intervalRef.current);
     intervalRef.current = null;
+    setDenote(denote)
   }
 
   return (
@@ -76,7 +77,7 @@ function Timer({ seconds, setSeconds, setDenote }) {
         seconds={seconds}
         onClick={() => {
           setIsEditing(true)
-          stopTicking()
+          stopTicking('none')
         }}
       />
   )
