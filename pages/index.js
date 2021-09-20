@@ -2,20 +2,21 @@ import Head from 'next/head'
 import { useState, useRef, useEffect } from 'react'
 
 export default function Page() {
+  const [seconds, setSeconds] = useState(0)
+
   return (
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <div className="container">
-        <Timer />
+        <Timer seconds={seconds} setSeconds={setSeconds} />
       </div>
     </>
   )
 }
 
-function Timer() {
-  const [seconds, setSeconds] = useState(0)
+function Timer({ seconds, setSeconds }) {
   const [isEditing, setIsEditing] = useState(false)
   const intervalRef = useRef(null)
   let audio
