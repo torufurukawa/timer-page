@@ -70,8 +70,7 @@ function Timer() {
 }
 
 function TimeIndicator({ seconds, onClick }) {
-  const min = Math.floor(seconds / 60).toString()
-  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  const [min, sec] = seconds2minsec(seconds)
 
   return (
     <input
@@ -87,8 +86,7 @@ function TimeIndicator({ seconds, onClick }) {
 
 function TimeController({ seconds, onChange }) {
   // placeholder
-  const min = Math.floor(seconds / 60).toString()
-  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  const [min, sec] = seconds2minsec(seconds)
   const placeholder = `${min}:${sec}`
 
   // digits and representing text
@@ -131,4 +129,10 @@ function TimeController({ seconds, onChange }) {
   // focus, then return
   useEffect(() => { ref.current.focus() }, [])
   return input
+}
+
+function seconds2minsec(seconds) {
+  const min = Math.floor(seconds / 60).toString()
+  const sec = (Math.floor(seconds) % 60).toString().padStart(2, '0')
+  return [min, sec]
 }
